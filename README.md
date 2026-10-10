@@ -72,3 +72,10 @@ On the 2,388-row validation file, this baseline reached 0.802 accuracy and 0.744
 ## Next components
 
 The prototype still needs broader evaluation of news sentiment, event classification, and impact scoring, plus stronger company attribution for ambiguous multi-ticker posts. Live GDELT coverage is rate-limited and its cached response can be noisy. Official newsroom feeds cover five of the ten index companies, and many headlines describe products or marketing rather than material financial events. Bluesky coverage varies by ticker and can include unverified claims. The source-linked samples support a reproducible demo.
+
+## Presentation
+
+The seven-slide project deck covers the problem, system design, implementation, results, use in financial analysis, and limitations.
+
+- [Submission PDF](docs/presentation.pdf)
+- [Editable PowerPoint](docs/presentation.pptx)
