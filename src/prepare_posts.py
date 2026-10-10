@@ -38,7 +38,7 @@ with (data_dir / "social_posts.csv").open(newline="", encoding="utf-8") as file:
                 for alias in aliases[ticker]
             )
 
-            if cashtag or name:
+            if cashtag:
                 records.append({
                     "source": "historical_social",
                     "source_index": source_index,
