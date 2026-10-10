@@ -50,7 +50,7 @@ history = pd.read_csv(HISTORY_FILE)
 final = pd.read_csv(FINAL_FILE)
 
 st.subheader("Analyze a new text item")
-st.caption("Paste a public headline or post and choose its company. This what-if result is not saved.")
+st.caption("Paste a public headline or post and select the company it concerns. This what-if result is not saved.")
 with st.form("new_signal"):
     chosen_ticker = st.selectbox("Company ticker", final["ticker"].tolist())
     input_source = st.selectbox("Text source", ["News headline", "Social post"])
@@ -167,10 +167,12 @@ if RISK_FILE.exists():
         risks = risks[risks["source_type"] == source_filter.lower()]
     risks = risks.sort_values("impact_score", ascending=False)
     risk_table = risks[
-        ["source_type", "ticker", "text", "sentiment_score", "event_type",
-         "impact_score", "event_evidence", "url"]
+        ["source_type", "collection_method", "source_kind", "ticker", "text",
+         "sentiment_score", "event_type", "impact_score", "event_evidence", "url"]
     ].rename(columns={
         "source_type": "Source",
+        "collection_method": "Collection",
+        "source_kind": "Source kind",
         "ticker": "Ticker",
         "text": "Text",
         "sentiment_score": "Sentiment (-1 to 1)",
