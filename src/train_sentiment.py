@@ -1,4 +1,4 @@
-"""Train a financial-post sentiment baseline and score matched social posts."""
+"""Train a financial-post sentiment baseline and score social and news inputs."""
 
 import csv
 import json
@@ -93,6 +93,39 @@ def main():
     print(f"Saved {len(scored)} sentiment signals to {output_path}")
     for row in scored[:5]:
         print(row["ticker"], row["sentiment_label"], row["sentiment_score"])
+
+    news_path = DATA_DIR / "news_inputs.jsonl"
+    if not news_path.exists():
+        print("No news inputs found; run python3 src/prepare_news.py to score news.")
+        return
+
+    with news_path.open(encoding="utf-8") as file:
+        news_records = [json.loads(line) for line in file if line.strip()]
+
+    news_scored = []
+    if news_records:
+        news_probabilities = model.predict_proba(
+            [clean_text(row["text"]) for row in news_records]
+        )
+        for record, probs in zip(news_records, news_probabilities):
+            best_index = max(range(len(probs)), key=lambda index: probs[index])
+            news_scored.append(
+                {
+                    **record,
+                    "sentiment_label": LABEL_NAMES[class_ids[best_index]],
+                    "sentiment_score": round(
+                        float(probs[bullish_index] - probs[bearish_index]), 4
+                    ),
+                    "model_probability": round(float(probs[best_index]), 4),
+                }
+            )
+
+    news_output = DATA_DIR / "news_signals.jsonl"
+    news_output.write_text(
+        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in news_scored),
+        encoding="utf-8",
+    )
+    print(f"Saved {len(news_scored)} news sentiment signals to {news_output}")
 
 
 if __name__ == "__main__":

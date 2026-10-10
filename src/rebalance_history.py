@@ -10,8 +10,13 @@ alpha = 0.2
 with (data_dir / "index.csv").open(newline="", encoding="utf-8") as file:
     stocks = list(csv.DictReader(file))
 
-with (data_dir / "social_signals.jsonl").open(encoding="utf-8") as file:
-    signals = [json.loads(line) for line in file if line.strip()]
+with (data_dir / "risk_signals.jsonl").open(encoding="utf-8") as file:
+    signals = []
+    for line in file:
+        if line.strip():
+            signal = json.loads(line)
+            if signal["event_type"] != "Other/Unclear":
+                signals.append(signal)
 
 scores = defaultdict(list)
 output = data_dir / "weight_history.csv"

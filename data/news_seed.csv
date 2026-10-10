@@ -1,0 +1,11 @@
+ticker,text,url,published_date,source_kind
+AAPL,Apple unveils the foldable iPhone Duo,https://apnews.com/article/fd35312e6d894d5f3b055b3d62f22cd2,2026-09-09,independent_news
+MSFT,Microsoft reports cloud and AI growth in fourth-quarter FY2026 results,https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast,2026-07-29,company_release
+AMZN,Amazon plans higher AI capital spending after strong second-quarter results,https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee,2026-07-30,independent_news
+GOOGL,Alphabet announces second-quarter 2026 results,https://www.sec.gov/Archives/edgar/data/1652044/000165204426000066/googexhibit991q22026.htm,2026-07-22,regulatory_filing
+META,FTC appeals ruling in Meta monopolization case,https://www.ftc.gov/news-events/news/press-releases/2026/01/ftc-appeals-ruling-meta-monopolization-case,,government_release
+NVDA,Nvidia reports second-quarter fiscal 2027 results,https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-Second-Quarter-Fiscal-2027/default.aspx,2026-08-26,company_release
+JPM,JPMorgan Chase plans dividend increase and new share repurchase program,https://www.jpmorganchase.com/ir/news/2026/jpmc-dividend-increase-common-share-repurchase,,company_release
+JNJ,Johnson & Johnson completes acquisition of Halda Therapeutics,https://www.jnj.com/media-center/press-releases/johnson-johnson-completes-acquisition-of-halda-therapeutics-and-its-novel-platform-to-revolutionize-cancer-treatment-and-enable-next-generation-oral-therapies,2025-12-29,company_release
+XOM,ExxonMobil announces fourth-quarter 2025 earnings,https://corporate.exxonmobil.com/news/news-releases/2026/0130-exxonmobil-announces-2025-results,2026-01-30,company_release
+WMT,Walmart releases fourth-quarter FY2026 earnings,https://corporate.walmart.com/news/2026/02/19/walmart-releases-q4-fy26-earnings,2026-02-19,company_release

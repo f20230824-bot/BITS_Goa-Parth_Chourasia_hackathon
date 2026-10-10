@@ -10,11 +10,12 @@ import streamlit as st
 DATA_DIR = Path(__file__).resolve().parent / "data"
 HISTORY_FILE = DATA_DIR / "weight_history.csv"
 FINAL_FILE = DATA_DIR / "rebalanced_index.csv"
+RISK_FILE = DATA_DIR / "risk_signals.jsonl"
 
 st.set_page_config(page_title="Mock Index Rebalancing", layout="wide")
 st.title("Sentiment-driven mock index")
 st.caption(
-    "Historical posts are replayed in file order as simulation steps. "
+    "Historical social posts and source-linked news are replayed in file order as simulation steps. "
     "The steps are not real-world timestamps or investment recommendations."
 )
 
@@ -22,7 +23,9 @@ if not HISTORY_FILE.exists() or not FINAL_FILE.exists():
     st.error("Generate the index data before opening the dashboard.")
     st.code(
         "python3 src/prepare_posts.py\n"
+        "python3 src/prepare_news.py\n"
         "python3 src/train_sentiment.py\n"
+        "python3 src/risk_engine.py\n"
         "python3 src/rebalance.py\n"
         "python3 src/rebalance_history.py",
         language="bash",
@@ -40,6 +43,7 @@ selected = st.multiselect(
 )
 
 st.subheader("Index weight by simulation step")
+st.caption("Module A uses sentiment from signals with a recognized event type.")
 if selected:
     chart_data = history[history["ticker"].isin(selected)].copy()
     chart_data["weight_pct"] = chart_data["weight"] * 100
@@ -87,3 +91,34 @@ table = table.rename(
     }
 )
 st.dataframe(table, hide_index=True, width="stretch")
+
+st.subheader("Structured risk signals")
+st.caption(
+    "Sentiment comes from the social-post model. Event labels and 1–10 impact "
+    "scores use transparent rules; the impact scores are not market-validated predictions."
+)
+if RISK_FILE.exists():
+    risks = pd.read_json(RISK_FILE, lines=True)
+    source_filter = st.selectbox("Signal source", ["All", "News", "Social"])
+    if source_filter != "All":
+        risks = risks[risks["source_type"] == source_filter.lower()]
+    risks = risks.sort_values("impact_score", ascending=False)
+    risk_table = risks[
+        ["source_type", "ticker", "text", "sentiment_score", "event_type",
+         "impact_score", "event_evidence", "url"]
+    ].rename(columns={
+        "source_type": "Source",
+        "ticker": "Ticker",
+        "text": "Text",
+        "sentiment_score": "Sentiment (-1 to 1)",
+        "event_type": "Event",
+        "impact_score": "Impact (1 to 10)",
+        "event_evidence": "Matched phrase",
+        "url": "Source link",
+    })
+    st.dataframe(
+        risk_table, hide_index=True, width="stretch",
+        column_config={"Source link": st.column_config.LinkColumn("Source link")},
+    )
+else:
+    st.info("Run python3 src/risk_engine.py to display structured signals here.")

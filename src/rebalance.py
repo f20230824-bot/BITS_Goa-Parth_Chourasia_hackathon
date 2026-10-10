@@ -14,10 +14,11 @@ if abs(sum(float(stock["base_weight"]) for stock in stocks) - 1.0) > 1e-6:
     raise ValueError("Starting index weights must add up to 1.0")
 
 scores = defaultdict(list)
-with (data_dir / "social_signals.jsonl").open(encoding="utf-8") as file:
+with (data_dir / "risk_signals.jsonl").open(encoding="utf-8") as file:
     for line in file:
         signal = json.loads(line)
-        scores[signal["ticker"]].append(float(signal["sentiment_score"]))
+        if signal["event_type"] != "Other/Unclear":
+            scores[signal["ticker"]].append(float(signal["sentiment_score"]))
 
 rows = []
 for stock in stocks:
