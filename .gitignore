@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Optional refresh cache; the reviewed sample remains tracked for offline runs.
+data/rss_articles.json

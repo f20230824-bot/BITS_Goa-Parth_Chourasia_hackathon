@@ -7,6 +7,7 @@ from pathlib import Path
 
 data_dir = Path(__file__).resolve().parents[1] / "data"
 articles_file = data_dir / "gdelt_articles.json"
+rss_file = data_dir / "rss_articles.json"
 seed_file = data_dir / "news_seed.csv"
 output_file = data_dir / "news_inputs.jsonl"
 
@@ -73,12 +74,24 @@ if articles_file.exists():
                 article.get("seendate", ""), "gdelt", "independent_news"
             )
 
+# Official newsroom feeds are mapped to their issuing company. Keep only
+# headlines that explicitly name that company to avoid unrelated partner news.
+if rss_file.exists():
+    articles = json.loads(rss_file.read_text(encoding="utf-8"))
+    for article in articles:
+        add_record(
+            article.get("ticker", ""), article.get("title", ""),
+            article.get("url", ""), article.get("published", ""),
+            "official_rss", "company_release"
+        )
+
 with output_file.open("w", encoding="utf-8") as file:
     for record in records:
         file.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 print(f"Saved {len(records)} relevant news records to {output_file}")
 print(f"Curated: {sum(r['collection_method'] == 'curated_sample' for r in records)}; "
-      f"GDELT: {sum(r['collection_method'] == 'gdelt' for r in records)}")
+      f"GDELT: {sum(r['collection_method'] == 'gdelt' for r in records)}; "
+      f"official RSS: {sum(r['collection_method'] == 'official_rss' for r in records)}")
 for record in records:
     print(record["ticker"], "-", record["text"])
