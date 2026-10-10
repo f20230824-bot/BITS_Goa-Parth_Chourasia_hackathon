@@ -221,6 +221,7 @@ __marimo__/
 
 # Optional refresh cache; the reviewed sample remains tracked for offline runs.
 data/rss_articles.json
+data/bluesky_posts.json
 data/gdelt_articles.json
 data/news_inputs.jsonl
 data/news_signals.jsonl

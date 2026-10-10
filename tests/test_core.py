@@ -4,6 +4,7 @@ import unittest
 
 from src.portfolio import calculate_weights
 from src.risk_engine import classify_event
+from src.social_filter import focused_on
 
 
 STOCKS = [
@@ -48,6 +49,17 @@ class PortfolioTest(unittest.TestCase):
         ]
         rows = calculate_weights(STOCKS, signals)
         self.assertEqual([row["new_weight"] for row in rows], [0.5, 0.5])
+
+
+class SocialAttributionTest(unittest.TestCase):
+    def test_accepts_single_cashtag_with_company_name(self):
+        self.assertTrue(focused_on("AAPL", "Apple cuts iPhone orders $AAPL"))
+
+    def test_rejects_multi_ticker_roundup(self):
+        self.assertFalse(focused_on("AAPL", "Meta faces probe $META $AAPL"))
+
+    def test_rejects_cashtag_without_company_name(self):
+        self.assertFalse(focused_on("MSFT", "OpenAI reports revenue growth $MSFT"))
 
 
 if __name__ == "__main__":

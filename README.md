@@ -7,8 +7,9 @@ This project analyzes financial news and public social posts to identify risks a
 - `data/index.csv` defines a mock index of ten stocks with equal starting weights.
 - `src/ingest_news.py` fetches recent GDELT article metadata. GDELT may rate limit requests; the script can use a locally saved response.
 - `src/ingest_rss.py` optionally fetches current headlines from five official company newsroom feeds. `src/prepare_news.py` keeps only headlines that explicitly name their issuing company.
+- `src/ingest_bluesky.py` optionally fetches recent public social posts through Bluesky search. A post must contain exactly one cashtag and explicitly name that company to enter the prepared dataset.
 - `data/news_seed.csv` contains ten short, paraphrased, source-linked public news and release items for a reproducible demo. `src/prepare_news.py` uses this sample by default; `--include-cached` explicitly adds local GDELT and RSS headlines.
-- `src/prepare_posts.py` selects historical social posts with explicit `$TICKER` mentions. This conservative match avoids treating an analyst's company as the subject of a post.
+- `src/prepare_posts.py` selects historical social posts with explicit `$TICKER` mentions by default; `--include-cached` adds the optional live Bluesky cache. This conservative match avoids treating an analyst's company as the subject of a post.
 - `src/train_sentiment.py` trains a TF-IDF and logistic regression sentiment baseline, evaluates it on held-out posts, and scores both social and news inputs.
 - `src/risk_engine.py` combines scored inputs and adds a rule-based event type and potential-impact score.
 - `src/portfolio.py` contains the shared index-weight calculation used by `src/rebalance.py`, `src/rebalance_history.py`, and the interactive dashboard.
@@ -21,6 +22,7 @@ This project analyzes financial news and public social posts to identify risks a
 ```mermaid
 flowchart LR
     A[Historical social CSV] --> B[Prepare posts]
+    L[Optional Bluesky public posts] --> B
     C[Source-linked news sample] --> D[Prepare news]
     E[Optional live RSS or GDELT cache] --> D
     B --> F[Sentiment model]
@@ -61,10 +63,12 @@ The rebalancer writes `data/rebalanced_index.csv`. It uses recognized-event sign
 
 The history script writes one index snapshot before any eligible signal and one after each additional signal. Historical social posts lack timestamps and the two sources are replayed in file order, so the dashboard's horizontal axis represents simulation steps rather than real time.
 
-The social data comes from the [Twitter Financial News Sentiment dataset](https://huggingface.co/datasets/zeroshot/twitter-financial-news-sentiment) (MIT license). `data/social_train.csv` is the training split and `data/social_posts.csv` is the validation split, replayed as historical posts rather than live social data. The dataset maps 0 to bearish, 1 to bullish, and 2 to neutral. Before training, the script excludes training rows whose cleaned text also appears in validation. The news sample is historical too. Its CSV includes a direct public source URL for every paraphrased headline. For an optional feed refresh, run `python3 src/ingest_rss.py`, then `python3 src/prepare_news.py --include-cached`, then rerun the remaining pipeline commands. This caches headline metadata from Apple, Microsoft, Amazon, Google, and Meta's official feeds; the cache is local and is not committed. These items are company announcements, not independent reporting. `src/ingest_news.py` remains an optional GDELT path; [GDELT's DOC API](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/) may return HTTP 429. The curated sample still works without either live source.
+The social data comes from the [Twitter Financial News Sentiment dataset](https://huggingface.co/datasets/zeroshot/twitter-financial-news-sentiment) (MIT license). `data/social_train.csv` is the training split and `data/social_posts.csv` is the validation split, replayed as historical posts rather than live social data. The dataset maps 0 to bearish, 1 to bullish, and 2 to neutral. Before training, the script excludes training rows whose cleaned text also appears in validation. The news sample is historical too. Its CSV includes a direct public source URL for every paraphrased headline.
+
+For an optional current-data run, use `python3 src/ingest_bluesky.py` and `python3 src/ingest_rss.py` first. Then run `python3 src/prepare_posts.py --include-cached` and `python3 src/prepare_news.py --include-cached`, followed by the training, risk-engine, rebalance, and dashboard commands above. The [Bluesky search API](https://docs.bsky.app/docs/api/app-bsky-feed-search-posts) provides public posts; single-cashtag plus company-name filtering reduces unrelated results but also misses some relevant posts. These posts are not independently verified. The newsroom feeds cover Apple, Microsoft, Amazon, Google, and Meta and contain company announcements, not independent reporting. The caches are local and not committed. `src/ingest_news.py` remains an optional GDELT path; [GDELT's DOC API](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/) may return HTTP 429. The curated sample works without any live source.
 
 On the 2,388-row validation file, this baseline reached 0.802 accuracy and 0.744 macro F1 after excluding 68 overlapping training rows. These are sentiment classification results, not evidence of profitable index rebalancing.
 
 ## Next components
 
-The prototype still needs broader evaluation of news sentiment, event classification, and impact scoring, plus stronger company attribution for ambiguous name-only mentions. Live GDELT coverage is rate-limited and its cached response can be noisy. Official newsroom feeds cover five of the ten index companies, and many headlines describe products or marketing rather than material financial events. The source-linked sample supports a reproducible demo.
+The prototype still needs broader evaluation of news sentiment, event classification, and impact scoring, plus stronger company attribution for ambiguous multi-ticker posts. Live GDELT coverage is rate-limited and its cached response can be noisy. Official newsroom feeds cover five of the ten index companies, and many headlines describe products or marketing rather than material financial events. Bluesky coverage varies by ticker and can include unverified claims. The source-linked samples support a reproducible demo.
