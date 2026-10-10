@@ -55,7 +55,7 @@ def enrich(record):
     # Stronger model sentiment nudges a recognized event up by at most 2 points.
     # Unknown events remain at 1 because sentiment alone is not an event.
     adjustment = min(2, int(abs(sentiment) * 3)) if evidence else 0
-    source_type = "social" if record["source"] == "historical_social" else "news"
+    source_type = "social" if record["source"] in {"historical_social", "manual_social"} else "news"
     identity = f'{record["source"]}|{record["ticker"]}|{record["text"]}'
     return {
         **record,

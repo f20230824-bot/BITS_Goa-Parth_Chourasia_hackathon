@@ -1,5 +1,6 @@
 """Prepare source-linked news headlines for the risk engine."""
 
+import argparse
 import csv
 import json
 import re
@@ -10,6 +11,13 @@ articles_file = data_dir / "gdelt_articles.json"
 rss_file = data_dir / "rss_articles.json"
 seed_file = data_dir / "news_seed.csv"
 output_file = data_dir / "news_inputs.jsonl"
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument(
+    "--include-cached", action="store_true",
+    help="include locally cached GDELT and official RSS headlines",
+)
+args = parser.parse_args()
 
 aliases = {
     "AAPL": ["Apple"],
@@ -62,7 +70,7 @@ with seed_file.open(newline="", encoding="utf-8") as file:
         )
 
 # Add any live GDELT headlines that clearly name an index company.
-if articles_file.exists():
+if args.include_cached and articles_file.exists():
     articles = json.loads(articles_file.read_text(encoding="utf-8"))
     for article in articles:
         if article.get("language") != "English":
@@ -76,7 +84,7 @@ if articles_file.exists():
 
 # Official newsroom feeds are mapped to their issuing company. Keep only
 # headlines that explicitly name that company to avoid unrelated partner news.
-if rss_file.exists():
+if args.include_cached and rss_file.exists():
     articles = json.loads(rss_file.read_text(encoding="utf-8"))
     for article in articles:
         add_record(

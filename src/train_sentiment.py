@@ -5,6 +5,7 @@ import json
 import re
 from pathlib import Path
 
+from joblib import dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, f1_score
@@ -28,6 +29,26 @@ def load_labeled_posts(path):
     return texts, labels
 
 
+def score_records(model, records):
+    """Apply the fitted model to any prepared news or social records."""
+    if not records:
+        return []
+    probabilities = model.predict_proba([clean_text(row["text"]) for row in records])
+    class_ids = list(model.named_steps["logisticregression"].classes_)
+    bearish_index = class_ids.index(0)
+    bullish_index = class_ids.index(1)
+    scored = []
+    for record, probs in zip(records, probabilities):
+        best_index = max(range(len(probs)), key=lambda index: probs[index])
+        scored.append({
+            **record,
+            "sentiment_label": LABEL_NAMES[class_ids[best_index]],
+            "sentiment_score": round(float(probs[bullish_index] - probs[bearish_index]), 4),
+            "model_probability": round(float(probs[best_index]), 4),
+        })
+    return scored
+
+
 def main():
     train_texts, train_labels = load_labeled_posts(DATA_DIR / "social_train.csv")
     valid_texts, valid_labels = load_labeled_posts(DATA_DIR / "social_posts.csv")
@@ -49,6 +70,7 @@ def main():
         LogisticRegression(max_iter=1000, class_weight="balanced", random_state=42),
     )
     model.fit(train_texts, train_labels)
+    dump(model, DATA_DIR / "sentiment_model.joblib")
 
     predictions = model.predict(valid_texts)
     print(f"Validation accuracy: {accuracy_score(valid_labels, predictions):.3f}")
@@ -69,21 +91,7 @@ def main():
     with input_path.open(encoding="utf-8") as file:
         records = [json.loads(line) for line in file if line.strip()]
 
-    probabilities = model.predict_proba([clean_text(row["text"]) for row in records])
-    class_ids = list(model.named_steps["logisticregression"].classes_)
-    bearish_index = class_ids.index(0)
-    bullish_index = class_ids.index(1)
-    scored = []
-    for record, probs in zip(records, probabilities):
-        best_index = max(range(len(probs)), key=lambda index: probs[index])
-        scored.append(
-            {
-                **record,
-                "sentiment_label": LABEL_NAMES[class_ids[best_index]],
-                "sentiment_score": round(float(probs[bullish_index] - probs[bearish_index]), 4),
-                "model_probability": round(float(probs[best_index]), 4),
-            }
-        )
+    scored = score_records(model, records)
 
     output_path = DATA_DIR / "social_signals.jsonl"
     output_path.write_text(
@@ -102,23 +110,7 @@ def main():
     with news_path.open(encoding="utf-8") as file:
         news_records = [json.loads(line) for line in file if line.strip()]
 
-    news_scored = []
-    if news_records:
-        news_probabilities = model.predict_proba(
-            [clean_text(row["text"]) for row in news_records]
-        )
-        for record, probs in zip(news_records, news_probabilities):
-            best_index = max(range(len(probs)), key=lambda index: probs[index])
-            news_scored.append(
-                {
-                    **record,
-                    "sentiment_label": LABEL_NAMES[class_ids[best_index]],
-                    "sentiment_score": round(
-                        float(probs[bullish_index] - probs[bearish_index]), 4
-                    ),
-                    "model_probability": round(float(probs[best_index]), 4),
-                }
-            )
+    news_scored = score_records(model, news_records)
 
     news_output = DATA_DIR / "news_signals.jsonl"
     news_output.write_text(

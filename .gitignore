@@ -221,3 +221,13 @@ __marimo__/
 
 # Optional refresh cache; the reviewed sample remains tracked for offline runs.
 data/rss_articles.json
+data/gdelt_articles.json
+data/news_inputs.jsonl
+data/news_signals.jsonl
+data/social_inputs.jsonl
+data/social_signals.jsonl
+data/risk_signals.jsonl
+data/rebalanced_index.csv
+data/weight_history.csv
+data/sentiment_model.joblib
+.DS_Store

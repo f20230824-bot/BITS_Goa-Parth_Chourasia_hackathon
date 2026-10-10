@@ -1,16 +1,30 @@
 """Dashboard for the simulated sentiment-driven stock index."""
 
+import json
 from pathlib import Path
 
 import altair as alt
 import pandas as pd
 import streamlit as st
+from joblib import load
+
+from src.portfolio import calculate_weights, load_index
+from src.risk_engine import enrich
+from src.train_sentiment import score_records
 
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 HISTORY_FILE = DATA_DIR / "weight_history.csv"
 FINAL_FILE = DATA_DIR / "rebalanced_index.csv"
 RISK_FILE = DATA_DIR / "risk_signals.jsonl"
+INDEX_FILE = DATA_DIR / "index.csv"
+MODEL_FILE = DATA_DIR / "sentiment_model.joblib"
+
+
+@st.cache_resource
+def load_fitted_model(path, modified_ns):
+    """Reload a model when the training script replaces its local artifact."""
+    return load(path)
 
 st.set_page_config(page_title="Mock Index Rebalancing", layout="wide")
 st.title("Sentiment-driven mock index")
@@ -34,6 +48,55 @@ if not HISTORY_FILE.exists() or not FINAL_FILE.exists():
 
 history = pd.read_csv(HISTORY_FILE)
 final = pd.read_csv(FINAL_FILE)
+
+st.subheader("Analyze a new text item")
+st.caption("Paste a public headline or post and choose its company. This what-if result is not saved.")
+with st.form("new_signal"):
+    chosen_ticker = st.selectbox("Company ticker", final["ticker"].tolist())
+    input_source = st.selectbox("Text source", ["News headline", "Social post"])
+    input_text = st.text_area("Headline or post text", max_chars=1000)
+    submitted = st.form_submit_button("Analyze and simulate")
+
+if submitted:
+    if not input_text.strip():
+        st.warning("Enter a headline or post first.")
+    elif not MODEL_FILE.exists() or not RISK_FILE.exists():
+        st.error("Run the preparation, training, and risk-engine commands before using the form.")
+    else:
+        model = load_fitted_model(str(MODEL_FILE), MODEL_FILE.stat().st_mtime_ns)
+        source = "manual_social" if input_source == "Social post" else "manual_news"
+        record = {"source": source, "ticker": chosen_ticker, "text": input_text.strip(),
+                  "collection_method": "manual_demo", "url": ""}
+        new_signal = enrich(score_records(model, [record])[0])
+        with RISK_FILE.open(encoding="utf-8") as file:
+            existing = [json.loads(line) for line in file if line.strip()]
+        stocks = load_index(INDEX_FILE)
+        before = {row["ticker"]: row for row in calculate_weights(stocks, existing)}
+        after = {row["ticker"]: row for row in calculate_weights(stocks, existing + [new_signal])}
+        st.write({
+            "ticker": new_signal["ticker"],
+            "sentiment": new_signal["sentiment_label"],
+            "sentiment_score": new_signal["sentiment_score"],
+            "event_type": new_signal["event_type"],
+            "impact_score": new_signal["impact_score"],
+            "matched_phrase": new_signal["event_evidence"],
+        })
+        if new_signal["event_type"] == "Other/Unclear":
+            st.info("No recognized event: this item does not change the mock index.")
+        comparison = pd.DataFrame([
+            {
+                "Ticker": ticker,
+                "Before (%)": round(before[ticker]["new_weight"] * 100, 4),
+                "After (%)": round(after[ticker]["new_weight"] * 100, 4),
+                "Change (percentage points)": round(
+                    (after[ticker]["new_weight"] - before[ticker]["new_weight"]) * 100, 4
+                ),
+            }
+            for ticker in before
+        ])
+        st.dataframe(comparison, hide_index=True, width="stretch")
+        st.caption("The simulation uses a social-post sentiment model and fixed weight rules; "
+                   "it does not predict market returns.")
 
 tickers = sorted(history["ticker"].unique())
 selected = st.multiselect(
@@ -87,7 +150,7 @@ table = table.rename(
         "base_weight": "Starting weight (%)",
         "new_weight": "Final weight (%)",
         "change_pp": "Change (percentage points)",
-        "signal_count": "Posts scored",
+        "signal_count": "Signals used",
     }
 )
 st.dataframe(table, hide_index=True, width="stretch")
