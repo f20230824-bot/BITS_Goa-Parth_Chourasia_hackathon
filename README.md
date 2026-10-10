@@ -1,1 +1,2 @@
 # BITS_Goa-Parth_Chourasia_hackathon
+This project analyzes financial news articles and public social media posts to identify potential risks affecting companies. Its NLP engine produces a sentiment score, an event category, and a potential impact score for each item. A mock stock index then uses the sentiment scores to adjust stock weights and display how those weights change over time.

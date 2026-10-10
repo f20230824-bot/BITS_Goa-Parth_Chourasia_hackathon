@@ -1,0 +1,11 @@
+ticker,company,base_weight
+AAPL,Apple,0.10
+MSFT,Microsoft,0.10
+AMZN,Amazon,0.10
+GOOGL,Alphabet,0.10
+META,Meta,0.10
+NVDA,Nvidia,0.10
+JPM,JPMorgan Chase,0.10
+JNJ,Johnson & Johnson,0.10
+XOM,Exxon Mobil,0.10
+WMT,Walmart,0.10
