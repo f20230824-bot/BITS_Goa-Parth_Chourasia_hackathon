@@ -35,9 +35,11 @@ flowchart LR
 
 ## Run the prototype
 
-Use Python 3.11. Check `python3 --version` first and select a Python 3.11 interpreter if your system default is older. From the repository root, run:
+Use Python 3.11. Check `python3 --version` first and select a Python 3.11 interpreter if your system default is older. From a terminal, run:
 
 ```bash
+git clone https://github.com/parth-chourasia/BITS_Goa-Parth_Chourasia_hackathon.git
+cd BITS_Goa-Parth_Chourasia_hackathon
 python3 -m pip install -r requirements.txt
 python3 src/prepare_posts.py
 python3 src/prepare_news.py
