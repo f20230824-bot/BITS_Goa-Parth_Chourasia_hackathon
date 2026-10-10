@@ -22,16 +22,29 @@ EVENT_RULES = [
     ("Regulatory", 6, r"\b(probe\w*|investigat\w*|antitrust|monopol\w*|lawsuit|sued|fine\w*|appeal\w*|regulator\w*)\b"),
     ("Merger/Acquisition", 6, r"\b(acqui\w*|merger|takeover|buyout)\b"),
     ("Earnings/Guidance", 5, r"\b(earnings|(?:first|second|third|fourth)[ -]quarter.{0,40}results|quarterly results|financial results|revenue|profit\w*|guidance|outlook|forecast\w*|capex|capital spending)\b"),
-    ("Product Launch", 4, r"\b(unveil\w*|launch\w*|introduc\w*|new product|new device)\b"),
+    ("Product Launch", 4,
+     r"\b(unveil\w*|launch\w*|introduc\w*|new product|new device|"
+     r"(?:Apple|Amazon|Google|Microsoft|Meta) debuts?|"
+     r"all[- ]new.{0,35}(?:tablets?|phones?|devices?|products?))\b"),
     ("Analyst Action", 3, r"\b(upgrad\w*|downgrad\w*|price target|analyst rating|overweight|underweight)\b"),
     ("Corporate Action", 3, r"\b(dividend\w*|repurchase\w*|buyback\w*|stock split)\b"),
 ]
 
 
 def classify_event(text):
+    # Announcing the date of a future earnings release conveys no result yet.
+    if re.search(r"\bearnings (?:release|announcement|call) date\b", text, re.IGNORECASE):
+        return "Other/Unclear", 1, ""
+
     for category, base_impact, pattern in EVENT_RULES:
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if match:
+            # A marketing or education campaign is not a product launch.
+            if category == "Product Launch" and re.search(
+                r"\blaunch\w*\b.{0,55}\b(?:initiative|campaign|education program)\b",
+                text, re.IGNORECASE,
+            ):
+                continue
             return category, base_impact, match.group(0)
     return "Other/Unclear", 1, ""
 

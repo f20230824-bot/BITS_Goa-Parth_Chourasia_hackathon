@@ -34,6 +34,8 @@ The training command writes `data/social_signals.jsonl` and `data/news_signals.j
 
 The risk engine writes `data/risk_signals.jsonl` with source, ticker, text, sentiment, event type, matched phrase, and a 1–10 impact score. Event categories use ordered keyword rules. The impact score starts from a fixed event-category severity and rises by at most two points for stronger sentiment. `Other/Unclear` receives 1. These are explicit prototype assumptions, not market-calibrated predictions. The dashboard displays the unified output and its source links.
 
+A [20-signal manual review](docs/signal_review.md) found four clear event-label errors, which were used to tighten the event rules. It is a small sanity check, not a measured event-classification accuracy or an evaluation of the sentiment model on news headlines.
+
 The rebalancer writes `data/rebalanced_index.csv`. It uses recognized-event signals from both news and social inputs, excluding `Other/Unclear`. It transfers weight from stocks with negative average sentiment to stocks with positive average sentiment, in proportion to their desired changes. Stocks with no eligible signal keep their starting weight. If all available signals have the same sign, it makes no transfer because there is no opposite side to fund it. The `alpha = 0.2` sensitivity is a simulation assumption, not an estimated market effect.
 
 The history script writes one index snapshot before any eligible signal and one after each additional signal. Historical social posts lack timestamps and the two sources are replayed in file order, so the dashboard's horizontal axis represents simulation steps rather than real time.
