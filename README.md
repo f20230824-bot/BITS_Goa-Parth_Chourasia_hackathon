@@ -6,7 +6,7 @@
 
 **College / Campus:** BITS Pilani, K. K. Birla Goa Campus
 
-**Demo Video Link:** Pending - unlisted YouTube link will be added before submission.
+**Demo Video Link:** [Watch the YouTube demo](https://youtu.be/BTLj4hiOFAA)
 
 **Slide Deck Link:** [Presentation PowerPoint](docs/presentation.pptx)
 
