@@ -8,7 +8,7 @@
 
 **Demo Video Link:** Pending - unlisted YouTube link will be added before submission.
 
-**Slide Deck Link:** [Presentation PDF](docs/presentation.pdf) | [Editable PowerPoint](docs/presentation.pptx)
+**Slide Deck Link:** [Presentation PowerPoint](docs/presentation.pptx)
 
 ## 1. Project Overview / Problem Statement & Approach
 
