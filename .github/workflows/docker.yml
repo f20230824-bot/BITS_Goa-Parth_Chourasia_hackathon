@@ -1,0 +1,33 @@
+name: Docker smoke test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image and run core tests
+        run: docker build -t mock-index .
+      - name: Start dashboard
+        run: docker run -d --name dashboard -p 127.0.0.1:8501:8501 mock-index
+      - name: Check dashboard health
+        run: |
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs dashboard
+          exit 1
+      - name: Show container logs
+        if: always()
+        run: docker logs dashboard || true

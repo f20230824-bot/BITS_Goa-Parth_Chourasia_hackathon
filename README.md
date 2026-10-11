@@ -77,6 +77,31 @@ For an optional current-data run, use `python3 src/ingest_bluesky.py` and `pytho
 
 ## 4. Quickstart & Installation
 
+### Docker quickstart
+
+Install [Docker Desktop](https://docs.docker.com/get-started/get-docker/) (or Docker Engine with the Compose plugin). Clone the repository and run:
+
+```bash
+git clone https://github.com/f20230824-bot/BITS_Goa-Parth_Chourasia_hackathon.git
+cd BITS_Goa-Parth_Chourasia_hackathon
+docker compose up --build
+```
+
+Open http://localhost:8501. The first build installs the pinned dependencies, runs the complete default pipeline, and runs the core tests. The image contains the generated model and replay data; running it does not require live feeds, API keys, or a local Python installation. Building requires internet access to download the base image and Python packages. Press Control+C to stop; `docker compose down` removes the stopped container. If port 8501 is already in use, stop the locally running dashboard first.
+
+Without Compose:
+
+```bash
+docker build -t mock-index .
+docker run --rm -p 127.0.0.1:8501:8501 mock-index
+```
+
+The container serves the dashboard as an unprivileged user and provides an HTTP health check. Its build context includes only application code, tests, and the four tracked input CSVs. Optional live caches, local model files, credentials, and Git history are excluded.
+
+Verified locally with Docker Desktop on macOS (Apple Silicon): the image builds, the demo pipeline runs, all 9 tests pass, the dashboard health endpoint responds, and the dashboard renders and analyzes a new text item successfully. The `Docker smoke test` GitHub Actions workflow also builds the image and checks the running dashboard after a push.
+
+### Local Python quickstart
+
 **Runtime:** Python 3.11; tested on macOS using Python 3.11.8.
 
 Use Python 3.11. Check `python3 --version` first and select a Python 3.11 interpreter if your system default is older. From a terminal, run:
